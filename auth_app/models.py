@@ -9,7 +9,13 @@ class UserProfile(models.Model):
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    file = models.CharField(max_length=255, blank=True, default='')
+    location = models.CharField(max_length=255, blank=True, default='')
+    tel = models.CharField(max_length=50, blank=True, default='')
+    description = models.TextField(blank=True, default='')
+    working_hours = models.CharField(max_length=255, blank=True, default='')
     type = models.CharField(max_length=50, choices=PROFILE_TYPE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.user.username

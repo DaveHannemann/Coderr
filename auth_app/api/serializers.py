@@ -52,6 +52,7 @@ class RegisterSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True)
     repeated_password = serializers.CharField(write_only=True)
     type = serializers.ChoiceField(choices=UserProfile.PROFILE_TYPE_CHOICES)
+    created_at = serializers.DateTimeField(read_only=True)
 
     def validate(self, data):
         """
@@ -190,5 +191,50 @@ class LoginSerializer(serializers.Serializer):
             "email": user.email,
         }
 
-class ProfileCheckSerializer(serializers.Serializer):
-    pass
+class ProfileSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(source="user.id", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+    first_name = serializers.CharField(source="user.first_name", required=False, allow_blank=True)
+    last_name = serializers.CharField(source="user.last_name", required=False, allow_blank=True)
+    email = serializers.EmailField(source="user.email", required=False)
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "user",
+            "username",
+            "first_name",
+            "last_name",
+            "file",
+            "location",
+            "tel",
+            "description",
+            "working_hours",
+            "type",
+            "email",
+            "created_at",
+        ]
+        read_only_fields = ["user", "username", "type", "created_at"]
+
+    def validate(self, attrs):
+        user_data = attrs.get("user", {})
+        email = user_data.get("email")
+
+        if self.instance and email and User.objects.filter(email=email).exclude(pk=self.instance.user_id).exists():
+            raise serializers.ValidationError({"email": "User already exists"})
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop("user", {})
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        user = instance.user
+        for attr, value in user_data.items():
+            setattr(user, attr, value)
+        user.save()
+
+        return instance

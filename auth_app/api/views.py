@@ -1,9 +1,10 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
+from .serializers import RegisterSerializer, LoginSerializer, ProfileSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from django.contrib.auth.models import User
+from auth_app.models import UserProfile
 
 class RegisterView(APIView):
     """
@@ -74,5 +75,37 @@ class LoginView(APIView):
 
         return Response(serializer.errors, status=400)
     
-class ProfileCheckView(APIView):
-    pass
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id=None):
+        queryset = UserProfile.objects.select_related("user")
+
+        if user_id is not None:
+            profile = get_object_or_404(queryset, user_id=user_id)
+            serializer = ProfileSerializer(profile)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        url_name = getattr(request.resolver_match, "url_name", "")
+        if url_name == "business_profiles":
+            queryset = queryset.filter(type="business")
+        elif url_name == "customer_profiles":
+            queryset = queryset.filter(type="customer")
+
+        serializer = ProfileSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request, user_id=None):
+        profile = get_object_or_404(UserProfile.objects.select_related("user"), user_id=user_id)
+
+        if request.user.id != profile.user_id:
+            return Response(
+                {"detail": "You do not have permission to edit this profile."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(ProfileSerializer(profile).data, status=status.HTTP_200_OK)
