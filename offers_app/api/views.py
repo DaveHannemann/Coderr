@@ -1,0 +1,57 @@
+from rest_framework import generics
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from offers_app.models import Offer, OfferDetail
+from offers_app.api.serializers import OfferDetailReadSerializer, OfferReadSerializer, OfferWriteSerializer, OfferDetailSerializer, OfferFullDetailSerializer
+from django.db.models import Min
+from .permissions import IsBusinessUserOrReadOnly, IsAuthenticatedAndOwnerOrAdmin
+
+
+class OfferListCreateView(generics.ListCreateAPIView):
+    queryset = Offer.objects.prefetch_related('details').annotate(
+        min_price=Min('details__price'),
+        min_delivery_time=Min('details__delivery_time_in_days')
+    )
+    permission_classes = [IsAuthenticatedOrReadOnly, IsBusinessUserOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return OfferWriteSerializer
+        return OfferReadSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Offer.objects.prefetch_related('details').annotate(
+        min_price=Min('details__price'),
+        min_delivery_time=Min('details__delivery_time_in_days')
+    )
+    serializer_class = OfferDetailReadSerializer
+    permission_classes = [IsAuthenticatedAndOwnerOrAdmin]
+
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            return OfferWriteSerializer
+        return OfferFullDetailSerializer
+    
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        instance = Offer.objects.prefetch_related('details').annotate(
+            min_price=Min('details__price'),
+            min_delivery_time=Min('details__delivery_time_in_days')
+        ).get(pk=instance.pk)
+
+        read_serializer = OfferFullDetailSerializer(instance, context={'request': request})
+        return Response(read_serializer.data)
+
+class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = OfferDetail.objects.all()
+    serializer_class = OfferDetailSerializer
+    permission_classes = [IsAuthenticated]
