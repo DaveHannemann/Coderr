@@ -1,6 +1,9 @@
-from rest_framework import generics
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics, filters
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from offers_app.api.filters import OfferFilter
+from offers_app.api.pagination import CustomPagination
 from offers_app.models import Offer, OfferDetail
 from offers_app.api.serializers import OfferDetailReadSerializer, OfferReadSerializer, OfferWriteSerializer, OfferDetailSerializer, OfferFullDetailSerializer
 from django.db.models import Min
@@ -13,6 +16,12 @@ class OfferListCreateView(generics.ListCreateAPIView):
         min_delivery_time=Min('details__delivery_time_in_days')
     )
     permission_classes = [IsAuthenticatedOrReadOnly, IsBusinessUserOrReadOnly]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = OfferFilter
+    search_fields = ['^title', '^description']
+    ordering_fields = ['min_price', 'updated_at']
+    ordering = ['-updated_at']
+    pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -31,6 +40,8 @@ class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticatedAndOwnerOrAdmin]
 
     def get_serializer_class(self):
+        if self.request.method in ['GET']:
+            return OfferDetailReadSerializer
         if self.request.method in ['PUT', 'PATCH']:
             return OfferWriteSerializer
         return OfferFullDetailSerializer

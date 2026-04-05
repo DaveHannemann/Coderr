@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'auth_app',
     'offers_app',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -122,6 +123,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -129,6 +132,10 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.OrderingFilter',
     ],
 }
 
