@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'auth_app',
     'offers_app',
+    'orders_app',
     'django_filters',
 ]
 
