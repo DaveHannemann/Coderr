@@ -76,12 +76,36 @@ class LoginView(APIView):
         return Response(serializer.errors, status=400)
     
 class ProfileView(APIView):
-    permission_classes = [IsAuthenticated]
+    authentication_classes = []
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            user_id = self.kwargs.get('user_id')
+
+            if user_id == "undefined":
+                return [AllowAny()]
+
+            if user_id is not None:
+                try:
+                    int(user_id)
+                except (ValueError, TypeError):
+                    return [AllowAny()]
+
+                return [IsAuthenticated()]
+
+            return [AllowAny()]
+
+        return [IsAuthenticated()]
 
     def get(self, request, user_id=None):
+        if user_id == "undefined":
+            return Response({}, status=status.HTTP_200_OK)
         queryset = UserProfile.objects.select_related("user")
 
         if user_id is not None:
+            try:
+                user_id = int(user_id)
+            except (ValueError, TypeError):
+                return Response({}, status=status.HTTP_200_OK)
             profile = get_object_or_404(queryset, user_id=user_id)
             serializer = ProfileSerializer(profile)
             return Response(serializer.data, status=status.HTTP_200_OK)
