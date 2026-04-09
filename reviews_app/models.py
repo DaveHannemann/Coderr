@@ -4,6 +4,13 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Review(models.Model):
+    """
+    Model representing a review from a customer to a business user.
+    Each customer can leave only one review per business user.
+
+    Constraints:
+        - A customer can review a business only once
+    """
 
     customer_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='given_reviews')
     business_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_reviews')

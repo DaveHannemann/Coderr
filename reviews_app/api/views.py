@@ -8,6 +8,21 @@ from reviews_app.api.filters import ReviewFilter
 
 
 class ReviewListCreateView(generics.ListCreateAPIView):
+    """
+    API endpoint for listing and creating reviews.
+
+    Permissions:
+        - Authenticated users only
+        - Only customers can create reviews
+
+    Filters:
+        - business_user_id: Filter by reviewed user
+        - reviewer_id: Filter by reviewer
+
+    Ordering:
+        - updated_at
+        - rating
+    """
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated, IsCustomerUser]
@@ -19,6 +34,13 @@ class ReviewListCreateView(generics.ListCreateAPIView):
     ordering = ['-created_at']
 
 class ReviewRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API endpoint for retrieving, updating, and deleting a review.
+
+    Permissions:
+        - Authenticated users only
+        - Only the review owner can modify or delete
+    """
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated, IsReviewOwnerOrReadOnly]

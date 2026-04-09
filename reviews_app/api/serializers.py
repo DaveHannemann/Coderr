@@ -5,6 +5,20 @@ from rest_framework.exceptions import PermissionDenied
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating, retrieving, and updating reviews.
+
+    Behavior:
+        - Automatically assigns the authenticated user as reviewer
+        - Prevents users from reviewing themselves
+        - Allows reviews only if a prior order exists between users
+        - Ensures only one review per customer-business pair
+
+    Validation:
+        - Rating must be between 1 and 5
+        - User must have placed an order with the business
+        - Duplicate reviews are not allowed
+    """
     reviewer = serializers.PrimaryKeyRelatedField(
         source='customer_user',
         read_only=True
