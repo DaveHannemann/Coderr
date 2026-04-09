@@ -1,9 +1,11 @@
+import profile
+
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer, LoginSerializer, ProfileSerializer
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from .serializers import BusinessProfileSerializer, CustomerProfileSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from auth_app.models import UserProfile
 
 class RegisterView(APIView):
@@ -76,48 +78,30 @@ class LoginView(APIView):
         return Response(serializer.errors, status=400)
     
 class ProfileView(APIView):
-    authentication_classes = []
-    def get_permissions(self):
-        if self.request.method == 'GET':
-            user_id = self.kwargs.get('user_id')
-
-            if user_id == "undefined":
-                return [AllowAny()]
-
-            if user_id is not None:
-                try:
-                    int(user_id)
-                except (ValueError, TypeError):
-                    return [AllowAny()]
-
-                return [IsAuthenticated()]
-
-            return [AllowAny()]
-
-        return [IsAuthenticated()]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, user_id=None):
-        if user_id == "undefined":
-            return Response({}, status=status.HTTP_200_OK)
         queryset = UserProfile.objects.select_related("user")
 
-        if user_id is not None:
-            try:
-                user_id = int(user_id)
-            except (ValueError, TypeError):
-                return Response({}, status=status.HTTP_200_OK)
+        if user_id:
             profile = get_object_or_404(queryset, user_id=user_id)
             serializer = ProfileSerializer(profile)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data)
 
-        url_name = getattr(request.resolver_match, "url_name", "")
+        url_name = request.resolver_match.url_name
+
         if url_name == "business_profiles":
             queryset = queryset.filter(type="business")
+            serializer = BusinessProfileSerializer(queryset, many=True)
+
         elif url_name == "customer_profiles":
             queryset = queryset.filter(type="customer")
+            serializer = CustomerProfileSerializer(queryset, many=True)
 
-        serializer = ProfileSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            serializer = ProfileSerializer(queryset, many=True)
+
+        return Response(serializer.data)
 
     def patch(self, request, user_id=None):
         profile = get_object_or_404(UserProfile.objects.select_related("user"), user_id=user_id)
@@ -132,4 +116,4 @@ class ProfileView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response(ProfileSerializer(profile).data, status=status.HTTP_200_OK)
+        return Response(ProfileSerializer(profile).data)

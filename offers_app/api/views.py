@@ -65,4 +65,4 @@ class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedAndOwnerOrAdmin]

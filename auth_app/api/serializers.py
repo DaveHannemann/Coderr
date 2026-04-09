@@ -99,11 +99,15 @@ class RegisterSerializer(serializers.Serializer):
 
         profile_type = validated_data.pop("type")
         validated_data.pop("repeated_password")
+        full_name = validated_data.get("username", "")
+        first_name, last_name = full_name.split(" ", 1) if " " in full_name else (full_name, "")
 
         user = User.objects.create_user(
             username=validated_data["username"],
             email=validated_data["email"],
             password=validated_data["password"],
+            first_name=first_name,
+            last_name=last_name,
         )
 
         UserProfile.objects.create(
@@ -220,8 +224,9 @@ class ProfileSerializer(serializers.ModelSerializer):
         user_data = attrs.get("user", {})
         email = user_data.get("email")
 
-        if self.instance and email and User.objects.filter(email=email).exclude(pk=self.instance.user_id).exists():
-            raise serializers.ValidationError({"email": "User already exists"})
+        if email and self.instance:
+            if User.objects.filter(email=email).exclude(pk=self.instance.user_id).exists():
+                raise serializers.ValidationError({"email": "User already exists"})
 
         return attrs
 
@@ -238,3 +243,46 @@ class ProfileSerializer(serializers.ModelSerializer):
         user.save()
 
         return instance
+
+
+class BusinessProfileSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(source="user.id", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+    first_name = serializers.CharField(source="user.first_name", required=False, allow_blank=True)
+    last_name = serializers.CharField(source="user.last_name", required=False, allow_blank=True)
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "user",
+            "username",
+            "first_name",
+            "last_name",
+            "file",
+            "location",
+            "tel",
+            "description",
+            "working_hours",
+            "type",
+        ]
+
+
+class CustomerProfileSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(source="user.id", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+    first_name = serializers.CharField(source="user.first_name", required=False, allow_blank=True)
+    last_name = serializers.CharField(source="user.last_name", required=False, allow_blank=True)
+
+    uploaded_at = serializers.DateTimeField(source="created_at", read_only=True)
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "user",
+            "username",
+            "first_name",
+            "last_name",
+            "file",
+            "uploaded_at",
+            "type",
+        ]

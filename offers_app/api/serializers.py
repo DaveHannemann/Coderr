@@ -43,10 +43,9 @@ class OfferWriteSerializer(serializers.ModelSerializer):
 
         if self.instance is None:
             if not details or len(details) != 3:
-                if len(details) != 3:
-                    raise serializers.ValidationError(
-                        "You must provide exactly 3 offer details."
-                    )
+                raise serializers.ValidationError(
+                    "You must provide exactly 3 offer details."
+                )
 
             types = [d.get('offer_type') for d in details]
 

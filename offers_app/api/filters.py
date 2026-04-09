@@ -16,6 +16,9 @@ class OfferFilter(filters.FilterSet):
         fields = []
 
     def __init__(self, data=None, *args, **kwargs):
+        if data:
+            data = data.copy()
+            data = {k: v for k, v in data.items() if v not in ["", None]}
         super().__init__(data, *args, **kwargs)
 
         if data:

@@ -4,14 +4,17 @@ from reviews_app.models import Review
 
 
 class ReviewFilter(filters.FilterSet):
-    business_user = filters.NumberFilter(field_name='business_user__id')
-    reviewer = filters.NumberFilter(field_name='customer_user__id')
+    business_user_id = filters.NumberFilter(field_name='business_user__id')
+    reviewer_id = filters.NumberFilter(field_name='customer_user__id')
 
     class Meta:
         model = Review
         fields = []
 
     def __init__(self, data=None, *args, **kwargs):
+        if data:
+            data = data.copy()
+            data = {k: v for k, v in data.items() if v not in ["", None]}
         super().__init__(data, *args, **kwargs)
 
         if data:
