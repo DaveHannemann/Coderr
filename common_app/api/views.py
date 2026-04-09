@@ -10,6 +10,9 @@ from django.db.models import Avg
 
 
 class BaseInfoView(APIView):
+    """
+    API endpoint for retrieving general platform statistics.
+    """
     permission_classes = [AllowAny]
     authentication_classes = []
 
