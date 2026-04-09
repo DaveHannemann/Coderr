@@ -10,6 +10,25 @@ from django.shortcuts import get_object_or_404
 
 
 class OrderListCreateView(generics.ListCreateAPIView):
+    """
+    API endpoint for listing and creating orders.
+
+    Permissions:
+        - Authenticated users only
+        - Only customers can create orders
+
+    GET:
+        - Customers see their own orders
+        - Business users see orders assigned to them
+        - Results are ordered by newest first
+
+    POST:
+        - Creates a new order from an OfferDetail
+        - Requires 'offer_detail_id'
+
+    Response:
+        - List of orders or created order object
+    """
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated, IsCustomerUser]
 
@@ -26,6 +45,29 @@ class OrderListCreateView(generics.ListCreateAPIView):
         return Order.objects.none()
 
 class OrderRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API endpoint for retrieving, updating, and deleting orders.
+
+    Permissions:
+        - Authenticated users only
+        - Only business owner or admin can modify
+
+    GET:
+        - Retrieve a single order
+
+    PATCH / PUT:
+        - Only 'status' can be updated
+        - Only business user can update status
+        - Enforces valid status transitions
+
+    DELETE:
+        - Only admin users can delete orders
+
+    Queryset:
+        - Customers see their own orders
+        - Business users see assigned orders
+        - Admin sees all orders
+    """
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated, IsBusinessAndOwnerOrReadOnly]
 
@@ -46,9 +88,14 @@ class OrderRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         return Order.objects.none()
     
 class OrderCountView(APIView):
+    """
+    API endpoint for retrieving the number of active orders
+    (status = 'in_progress') for a business user.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):
+        # Ensure business user exists
         user = get_object_or_404(User, id=business_user_id)
 
         count = Order.objects.filter(
@@ -62,6 +109,10 @@ class OrderCountView(APIView):
 
 
 class CompletedOrderCountView(APIView):
+    """
+    API endpoint for retrieving the number of completed orders
+    for a business user.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, business_user_id):

@@ -4,6 +4,13 @@ from offers_app.models import Offer, OfferDetail
 
 
 class Order(models.Model):
+    """
+    Model representing an order between a customer and a business user.
+
+    An order is created based on a selected OfferDetail and stores
+    a snapshot of its data (title, price, delivery time, etc.)
+    to ensure consistency even if the original offer changes.
+    """
     STATUS_CHOICES = (
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
