@@ -1,12 +1,13 @@
-import profile
+
 
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import BusinessProfileSerializer, CustomerProfileSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from auth_app.models import UserProfile
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class RegisterView(APIView):
     """
@@ -79,6 +80,7 @@ class LoginView(APIView):
     
 class ProfileView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+    parser_classes = [MultiPartParser, FormParser]
 
     def get(self, request, user_id=None):
         queryset = UserProfile.objects.select_related("user")

@@ -201,6 +201,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source="user.first_name", required=False, allow_blank=True)
     last_name = serializers.CharField(source="user.last_name", required=False, allow_blank=True)
     email = serializers.EmailField(source="user.email", required=False)
+    file = serializers.FileField(required=False, allow_null=True)
 
     class Meta:
         model = UserProfile
@@ -250,6 +251,7 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
     first_name = serializers.CharField(source="user.first_name", required=False, allow_blank=True)
     last_name = serializers.CharField(source="user.last_name", required=False, allow_blank=True)
+    file = serializers.FileField(required=False, allow_null=True)
 
     class Meta:
         model = UserProfile
@@ -272,7 +274,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source="user.username", read_only=True)
     first_name = serializers.CharField(source="user.first_name", required=False, allow_blank=True)
     last_name = serializers.CharField(source="user.last_name", required=False, allow_blank=True)
-
+    file = serializers.FileField(required=False, allow_null=True)
     uploaded_at = serializers.DateTimeField(source="created_at", read_only=True)
 
     class Meta:
