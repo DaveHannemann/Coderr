@@ -1,9 +1,15 @@
-
 from rest_framework import serializers
 from offers_app.models import Offer, OfferDetail
 
 
 class OfferDetailLinkSerializer(serializers.ModelSerializer):
+    """
+    Serializer for linking to OfferDetail resources.
+
+    Provides:
+        - id
+        - URL to detail endpoint
+    """
     url = serializers.HyperlinkedIdentityField(
         view_name='offerdetail-detail',
         lookup_field='pk'
@@ -14,12 +20,25 @@ class OfferDetailLinkSerializer(serializers.ModelSerializer):
         fields = ['id', 'url']
 
 class OfferDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer for full OfferDetail representation.
 
+    Used for:
+        - Creating and updating offer details
+        - Nested representation in offers
+    """
     class Meta:
         model = OfferDetail
         fields = ['id', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type']
 
 class OfferFullDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer for returning full offer details after update.
+
+    Includes:
+        - Offer data
+        - Fully expanded OfferDetail objects
+    """
     details = OfferDetailSerializer(many=True, read_only=True)
 
     class Meta:
@@ -31,6 +50,22 @@ class OfferFullDetailSerializer(serializers.ModelSerializer):
 
 
 class OfferWriteSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating and updating offers.
+
+    Includes nested OfferDetail objects.
+
+    Validation:
+        - On create:
+            * Exactly 3 details required
+            * Must include: basic, standard, premium
+        - On update:
+            * Each detail must include 'offer_type'
+
+    Behavior:
+        - Creates Offer and related OfferDetail objects
+        - Updates existing OfferDetails by offer_type
+    """
     details = OfferDetailSerializer(many=True, required=False)
     image = serializers.CharField(allow_null=True, required=False)
 
@@ -90,7 +125,6 @@ class OfferWriteSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         "offer_type is required for updating details."
                     )
-
                 try:
                     detail = instance.details.get(offer_type=offer_type)
                 except OfferDetail.DoesNotExist:
@@ -106,6 +140,17 @@ class OfferWriteSerializer(serializers.ModelSerializer):
         return instance
     
 class OfferReadSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing offers.
+
+    Includes:
+        - Basic offer data
+        - Links to detail endpoints
+        - Calculated fields:
+            * min_price
+            * min_delivery_time
+        - User information (username, first_name, last_name)
+    """
     details = OfferDetailLinkSerializer(many=True, read_only=True)
     min_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     min_delivery_time = serializers.IntegerField(read_only=True)
@@ -128,6 +173,14 @@ class OfferReadSerializer(serializers.ModelSerializer):
         }
     
 class OfferDetailReadSerializer(serializers.ModelSerializer):
+    """
+    Serializer for retrieving a single offer.
+
+    Includes:
+        - Offer data
+        - Links to OfferDetail endpoints
+        - Aggregated fields (min_price, min_delivery_time)
+    """
     details = OfferDetailLinkSerializer(many=True, read_only=True)
     min_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     min_delivery_time = serializers.IntegerField(read_only=True)

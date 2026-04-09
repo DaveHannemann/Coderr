@@ -2,6 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Offer(models.Model):
+    """
+    Model representing a business user-created offer.
+
+    Each offer belongs to a business user and can contain multiple pricing tiers
+    via related OfferDetail objects.
+    """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='offers')
     title = models.CharField(max_length=255)
     image = models.CharField(max_length=255, blank=True, null=True)
@@ -13,6 +19,14 @@ class Offer(models.Model):
         return self.title
 
 class OfferDetail(models.Model):
+    """
+    Model representing a pricing tier for an offer.
+
+    Each offer must contain exactly three detail types:
+        - basic
+        - standard
+        - premium
+    """
     OFFER_TYPE_CHOICES = (
         ('basic', 'Basic'),
         ('standard', 'Standard'),

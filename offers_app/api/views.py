@@ -11,6 +11,30 @@ from .permissions import IsBusinessUserOrReadOnly, IsAuthenticatedAndOwnerOrAdmi
 
 
 class OfferListCreateView(generics.ListCreateAPIView):
+    """
+    API endpoint for listing and creating offers.
+
+    Permissions:
+        GET: AllowAny
+        POST: Authenticated users with business profile only
+
+    GET:
+        - Returns paginated list of offers
+        - Supports filtering, search, and ordering
+
+    Filters:
+        - Custom filters via OfferFilter
+        - Search by title and description
+        - Ordering by min_price and updated_at
+
+    POST:
+        - Creates a new offer with exactly 3 pricing tiers
+        - Automatically assigns the current user as owner
+
+    Response:
+        - GET: List of offers (OfferReadSerializer)
+        - POST: Created offer
+    """
     queryset = Offer.objects.prefetch_related('details').annotate(
         min_price=Min('details__price'),
         min_delivery_time=Min('details__delivery_time_in_days')
@@ -32,6 +56,16 @@ class OfferListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API endpoint for retrieving, updating, and deleting a single offer.
+
+    Permissions:
+        - Only the owner or admin can modify
+
+    Response:
+        - GET: OfferDetailReadSerializer
+        - UPDATE: OfferFullDetailSerializer (full nested data)
+    """
     queryset = Offer.objects.prefetch_related('details').annotate(
         min_price=Min('details__price'),
         min_delivery_time=Min('details__delivery_time_in_days')
@@ -63,6 +97,12 @@ class OfferRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
         return Response(read_serializer.data)
 
 class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API endpoint for managing individual OfferDetail objects.
+
+    Permissions:
+        - Only the owner or admin can modify
+    """
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
     permission_classes = [IsAuthenticatedAndOwnerOrAdmin]

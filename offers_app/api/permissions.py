@@ -2,6 +2,17 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 class IsBusinessUserOrReadOnly(BasePermission):
+    """
+    Permission that allows read-only access for all users,
+    but restricts write operations to authenticated business users.
+
+    Rules:
+        - SAFE_METHODS (GET, HEAD, OPTIONS): allowed for everyone
+        - POST/PUT/PATCH/DELETE:
+            * User must be authenticated
+            * User must have a profile
+            * Profile type must be "business"
+    """
     message = "You must be a business user to create an offer."
 
     def has_permission(self, request, view):
@@ -19,6 +30,17 @@ class IsBusinessUserOrReadOnly(BasePermission):
         return user.profile.type == 'business'
     
 class IsAuthenticatedAndOwnerOrAdmin(BasePermission):
+    """
+    Permission that allows access only to authenticated users,
+    and restricts modification to the object owner or admin.
+
+    Rules:
+        - All requests require authentication
+        - SAFE_METHODS: allowed for authenticated users
+        - Write operations:
+            * Allowed for object owner
+            * Allowed for admin (staff or superuser)
+    """
     message = "You must be the owner or an admin to modify this offer."
 
     def has_permission(self, request, view):

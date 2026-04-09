@@ -3,6 +3,18 @@ from rest_framework.exceptions import ValidationError
 from offers_app.models import Offer
 
 class OfferFilter(filters.FilterSet):
+    """
+    FilterSet for filtering Offer queryset.
+
+    Behavior:
+        - Ignores empty query parameters
+        - Raises ValidationError for unknown parameters
+
+    Allowed query params:
+        - All defined filters
+        - page (pagination)
+        - ordering (sorting)
+    """
     min_price = filters.NumberFilter(field_name='min_price', lookup_expr='gte')
     max_price = filters.NumberFilter(field_name='min_price', lookup_expr='lte')
 
@@ -26,6 +38,9 @@ class OfferFilter(filters.FilterSet):
             allowed = set(self.filters.keys()) | extra_allowed
             received = set(data.keys())
 
+            # Validate query parameters:
+            # - Allow only defined filters + pagination + ordering
+            # - Reject unknown parameters to prevent unintended filtering or misuse
             unknown = received - allowed
 
             if unknown:
