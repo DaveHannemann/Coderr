@@ -1,5 +1,3 @@
-
-
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
@@ -79,6 +77,21 @@ class LoginView(APIView):
         return Response(serializer.errors, status=400)
     
 class ProfileView(APIView):
+    """
+    API endpoint for retrieving and updating user profiles.
+
+    Permissions:
+        GET: AllowAny
+        PATCH: IsAuthenticated (only owner can update profile)
+
+    GET:
+        - Retrieve a single profile by user_id
+        - Retrieve a list of profiles (filtered by type)
+
+    PATCH:
+        - Update profile of authenticated user
+        - Supports multipart/form-data for file uploads
+    """
     permission_classes = [IsAuthenticatedOrReadOnly]
     parser_classes = [MultiPartParser, FormParser]
 

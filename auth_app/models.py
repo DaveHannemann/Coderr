@@ -3,6 +3,11 @@ from django.contrib.auth.models import User
 
 
 class UserProfile(models.Model):
+    """
+    Model representing extended user profile information.
+
+    Each user has exactly one profile.
+    """
     PROFILE_TYPE_CHOICES = (
         ('customer', 'Customer'),
         ('business', 'Business')

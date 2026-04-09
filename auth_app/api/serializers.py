@@ -196,6 +196,21 @@ class LoginSerializer(serializers.Serializer):
         }
 
 class ProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for full user profile representation and update.
+
+    Includes:
+        - User-related fields (username, email, first_name, last_name)
+        - Profile-specific fields (file, location, etc.)
+        - Allows partial updates (PATCH)
+        - Handles file uploads
+
+    Validation:
+        - Ensures email uniqueness across users
+
+    Update:
+        - Updates UserProfile fields
+    """
     user = serializers.IntegerField(source="user.id", read_only=True)
     username = serializers.CharField(source="user.username", read_only=True)
     first_name = serializers.CharField(source="user.first_name", required=False, allow_blank=True)
@@ -247,6 +262,13 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for public business profile representation.
+
+    Includes only public-facing fields:
+        - No email
+        - No timestamps
+    """
     user = serializers.IntegerField(source="user.id", read_only=True)
     username = serializers.CharField(source="user.username", read_only=True)
     first_name = serializers.CharField(source="user.first_name", required=False, allow_blank=True)
@@ -270,6 +292,11 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
+    """
+    Serializer for public customer profile representation.
+
+    Includes minimal profile data.
+    """
     user = serializers.IntegerField(source="user.id", read_only=True)
     username = serializers.CharField(source="user.username", read_only=True)
     first_name = serializers.CharField(source="user.first_name", required=False, allow_blank=True)
