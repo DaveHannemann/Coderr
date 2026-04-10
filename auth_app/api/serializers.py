@@ -264,10 +264,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 class BusinessProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for public business profile representation.
-
-    Includes only public-facing fields:
-        - No email
-        - No timestamps
     """
     user = serializers.IntegerField(source="user.id", read_only=True)
     username = serializers.CharField(source="user.username", read_only=True)
@@ -302,7 +298,7 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source="user.first_name", required=False, allow_blank=True)
     last_name = serializers.CharField(source="user.last_name", required=False, allow_blank=True)
     file = serializers.FileField(required=False, allow_null=True)
-    uploaded_at = serializers.DateTimeField(source="created_at", read_only=True)
+    uploaded_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = UserProfile

@@ -42,7 +42,7 @@ class OfferListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly, IsBusinessUserOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = OfferFilter
-    search_fields = ['^title', '^description']
+    search_fields = ['title', 'description']
     ordering_fields = ['min_price', 'updated_at']
     ordering = ['-updated_at']
     pagination_class = CustomPagination

@@ -81,7 +81,7 @@ class ProfileView(APIView):
     API endpoint for retrieving and updating user profiles.
 
     Permissions:
-        GET: AllowAny
+        GET: IsAuthenticated
         PATCH: IsAuthenticated (only owner can update profile)
 
     GET:
@@ -95,21 +95,13 @@ class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
-    def get_profile_serializer(self, request, profile):
-        if request.user.id == profile.user_id:
-            return ProfileSerializer(profile)
-
-        if profile.type == "business":
-            return BusinessProfileSerializer(profile)
-
-        return CustomerProfileSerializer(profile)
 
     def get(self, request, user_id=None):
         queryset = UserProfile.objects.select_related("user")
 
         if user_id:
             profile = get_object_or_404(queryset, user_id=user_id)
-            serializer = self.get_profile_serializer(request, profile)
+            serializer = ProfileSerializer(profile)
             return Response(serializer.data)
 
         url_name = request.resolver_match.url_name
