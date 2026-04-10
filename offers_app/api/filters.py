@@ -34,7 +34,7 @@ class OfferFilter(filters.FilterSet):
         super().__init__(data, *args, **kwargs)
 
         if data:
-            extra_allowed = {'page_size', 'ordering', 'search'}
+            extra_allowed = {'page_size', 'ordering', 'search', 'page'}
             allowed = set(self.filters.keys()) | extra_allowed
             received = set(data.keys())
 
