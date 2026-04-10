@@ -14,6 +14,8 @@ class OfferFilter(filters.FilterSet):
         - All defined filters
         - page (pagination)
         - ordering (sorting)
+        - search (if SearchFilter is used in the view)
+        - page_size (if pagination is used in the view)
     """
     min_price = filters.NumberFilter(field_name='min_price', lookup_expr='gte')
     max_price = filters.NumberFilter(field_name='min_price', lookup_expr='lte')
