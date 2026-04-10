@@ -3,9 +3,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import BusinessProfileSerializer, CustomerProfileSerializer, RegisterSerializer, LoginSerializer, ProfileSerializer
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from auth_app.models import UserProfile
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 
 class RegisterView(APIView):
     """
@@ -90,17 +90,26 @@ class ProfileView(APIView):
 
     PATCH:
         - Update profile of authenticated user
-        - Supports multipart/form-data for file uploads
+        - Supports multipart/form-data/JSON for file uploads
     """
-    permission_classes = [IsAuthenticatedOrReadOnly]
-    parser_classes = [MultiPartParser, FormParser]
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_profile_serializer(self, request, profile):
+        if request.user.id == profile.user_id:
+            return ProfileSerializer(profile)
+
+        if profile.type == "business":
+            return BusinessProfileSerializer(profile)
+
+        return CustomerProfileSerializer(profile)
 
     def get(self, request, user_id=None):
         queryset = UserProfile.objects.select_related("user")
 
         if user_id:
             profile = get_object_or_404(queryset, user_id=user_id)
-            serializer = ProfileSerializer(profile)
+            serializer = self.get_profile_serializer(request, profile)
             return Response(serializer.data)
 
         url_name = request.resolver_match.url_name

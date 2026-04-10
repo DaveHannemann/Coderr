@@ -34,7 +34,7 @@ class OfferFilter(filters.FilterSet):
         super().__init__(data, *args, **kwargs)
 
         if data:
-            extra_allowed = {'page', 'ordering'}
+            extra_allowed = {'page_size', 'ordering', 'search'}
             allowed = set(self.filters.keys()) | extra_allowed
             received = set(data.keys())
 
@@ -45,5 +45,5 @@ class OfferFilter(filters.FilterSet):
 
             if unknown:
                 raise ValidationError({
-                    "error": f"Ungültige Anfrageparameter: {', '.join(unknown)}"
+                    "error": f"Unknown parameters: {', '.join(unknown)}"
                 })
